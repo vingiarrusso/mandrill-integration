@@ -19,7 +19,8 @@ class Mailer(object):
             A simple abstraction to create Mandrill formatted parameter dictionary for sending emails.  Keys currently supported are:
             email, fname, lname, subject, tags, global_merge_vars, images (jpeg), attachments (jpeg).  If more are needed,
             check out the mandrill api for additional things it can accept and add them in here.  Could also be extended to support different
-            image/attachment types if needed.
+            image/attachment types if needed.  Mandrill expects images and attachments to be base64 encoded.  This implementation assumes you've already
+            done that step.
         """
         return {
             "to": [{
@@ -67,3 +68,20 @@ class Mailer(object):
             return result
         except mandrill.Error as e:
             logging.error(str(e))
+
+
+# Example Usage:
+mailer = Mailer()
+template_name = 'Your Mandrill template name'
+mandrill_result = mailer.send_template(template_name, mailer.make_mail_params(
+    email = 'recipient email',
+    subject = 'Hello from Mandrill',
+    tags = [template_name],
+    global_merge_vars = {
+        'user_id': 42,
+        'user_name': 'Francisco Gerardo',
+        'user_key': 'f7994kd49as621'
+    },
+    images = {'image_cid_name': yourImage.encode('base64')},
+    attachments = {'attachment_file_name': yourImage.encode('base64')}
+))[0] #mandrill returns a list, you'll probably only ever need the first element.
